@@ -2,15 +2,22 @@ import { types } from 'react-bricks/frontend'
 
 import HeroUnit from './custom/MyHeroUnit'
 import reactBricksUITheme from './react-bricks-ui'
+import TextImage from './custom/TextImage'
+import Features from './custom/Features/Features'
+import FeatureItem from './custom/Features/FeatureItem'
 
 const bricks: types.Theme[] = [
   reactBricksUITheme, // React Bricks UI
   {
-    themeName: 'Custom',
+    themeName: 'Custom', // Custom Bricks
     categories: [
       {
         categoryName: 'Hero sections',
-        bricks: [HeroUnit], // Custom Bricks
+        bricks: [HeroUnit],
+      },
+      {
+        categoryName: 'Main content',
+        bricks: [TextImage, Features, FeatureItem],
       },
     ],
   },

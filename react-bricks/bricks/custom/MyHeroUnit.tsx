@@ -27,7 +27,7 @@ const MyHeroUnit: types.Brick<HeroUnitProps> = ({ padding }) => {
           alt="Icon"
           maxWidth={200}
           aspectRatio={1}
-          imageClassName="w-20 mb-5 mx-auto"
+          imageClassName="w-20 mb-5 mx-auto rounded-full"
         />
         <Text
           renderBlock={(props) => (
@@ -54,7 +54,7 @@ const MyHeroUnit: types.Brick<HeroUnitProps> = ({ padding }) => {
             types.RichTextFeatures.Link,
           ]}
           renderCode={(props) => (
-            <code className="text-sm py-1 px-2 bg-gray-200 dark:bg-gray-700 rounded">
+            <code className="text-sm py-1 px-2 bg-sky-200 dark:bg-sky-800 rounded">
               {props.children}
             </code>
           )}
