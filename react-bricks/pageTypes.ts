@@ -7,6 +7,24 @@ const pageTypes: types.IPageType[] = [
     defaultLocked: false,
     defaultStatus: types.PageStatus.Published,
     getDefaultContent: () => [],
+    customFields: [
+      {
+        name: 'test',
+        label: 'Test Field',
+        type: types.SideEditPropType.Text,
+      },
+    ],
+  },
+  {
+    name: 'pokemon',
+    pluralName: 'pokemon',
+    getExternalData: (page) =>
+      fetch(`https://pokeapi.co/api/v2/pokemon/${page.slug}`)
+        .then((response) => response.json())
+        .then((data) => ({
+          ...data,
+          imageUrl: `https://img.pokemondb.net/artwork/large/${data.name}.jpg`,
+        })),
   },
   {
     name: 'blog',
@@ -33,7 +51,6 @@ const pageTypes: types.IPageType[] = [
           catFact: data.fact,
         })),
   },
-
   {
     name: 'layout',
     pluralName: 'layout',

@@ -1,4 +1,10 @@
-import { Image, RichText, Text, types } from 'react-bricks/frontend'
+import {
+  Image,
+  RichText,
+  Text,
+  types,
+  usePageValues,
+} from 'react-bricks/frontend'
 
 //=============================
 // Local Types
@@ -15,6 +21,10 @@ interface HeroUnitProps {
 // Component to be rendered
 //=============================
 const MyHeroUnit: types.Brick<HeroUnitProps> = ({ padding }) => {
+  const [page, setPage] = usePageValues()
+
+  const { customValues } = page
+
   return (
     <div
       className={`max-w-xl mx-auto px-6 ${
@@ -36,7 +46,7 @@ const MyHeroUnit: types.Brick<HeroUnitProps> = ({ padding }) => {
             </h1>
           )}
           placeholder="Type a title..."
-          propName="title"
+          metaFieldName="title"
         />
         <RichText
           renderBlock={(props) => (
@@ -88,6 +98,19 @@ MyHeroUnit.schema = {
           { value: 'small', label: 'Small Padding' },
         ],
       },
+    },
+    {
+      name: 'test',
+      label: 'Test',
+      type: types.SideEditPropType.Custom,
+      validate: (value) => (value && value.startsWith('a')) || 'Error',
+      component: ({ value, onChange, isValid }) => (
+        <input
+          style={{ backgroundColor: isValid ? 'lightgreen' : 'pink' }}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      ),
     },
   ],
 }
