@@ -1,4 +1,5 @@
-import { types } from 'react-bricks/frontend'
+import { fetchPages, fetchTags, types } from 'react-bricks/frontend'
+import config from './config'
 
 const pageTypes: types.IPageType[] = [
   {
@@ -58,6 +59,29 @@ const pageTypes: types.IPageType[] = [
     defaultStatus: types.PageStatus.Published,
     getDefaultContent: () => [],
     isEntity: true,
+  },
+  {
+    name: 'post-list',
+    pluralName: 'Postlists',
+    defaultLocked: false,
+    defaultStatus: types.PageStatus.Published,
+    getDefaultContent: () => [],
+    allowedBlockTypes: ['title', 'post-list'],
+    getExternalData: async (page, args) => {
+      const tagArgs = args?.tag ? { tag: args.tag } : {}
+      const pages = await fetchPages(config.apiKey, {
+        ...tagArgs,
+        type: 'blog',
+        pageSize: 100,
+        sort: '-publishedAt',
+      })
+      const tags = await fetchTags(process.env.API_KEY)
+
+      return {
+        pagesByTag: pages,
+        allTags: tags?.items || [],
+      }
+    },
   },
 ]
 

@@ -1,90 +1,59 @@
-import { GetStaticProps } from 'next'
+import { GetStaticPaths, GetStaticProps } from 'next'
 import Head from 'next/head'
 import {
   PageViewer,
   cleanPage,
   fetchPage,
-  fetchPages,
-  fetchTags,
   types,
   useReactBricksContext,
 } from 'react-bricks/frontend'
 
-import PostListItem from '../../components/PostListItem'
-import TagListItem from '../../components/TagListItem'
 import ErrorNoFooter from '../../components/errorNoFooter'
 import ErrorNoHeader from '../../components/errorNoHeader'
 import ErrorNoKeys from '../../components/errorNoKeys'
 import Layout from '../../components/layout'
 import config from '../../react-bricks/config'
 
-interface HomeProps {
+interface PageProps {
+  pagesByTag: types.Page[]
+  popularPosts: types.Page[]
   errorNoKeys: string
   errorHeader: string
   errorFooter: string
-  tags: string[]
-  posts: types.Page[]
+  filterTag: string
+  allTags: string[]
   header: types.Page
   footer: types.Page
+  page: types.Page
 }
 
-const BlogList: React.FC<HomeProps> = ({
-  tags,
-  posts,
+const Page: React.FC<PageProps> = ({
+  filterTag,
   errorNoKeys,
   errorHeader,
   errorFooter,
   header,
   footer,
+  page,
 }) => {
   const { pageTypes, bricks } = useReactBricksContext()
   const headerOk = header ? cleanPage(header, pageTypes, bricks) : null
   const footerOk = footer ? cleanPage(footer, pageTypes, bricks) : null
-
+  const pageOk = page ? cleanPage(page, pageTypes, bricks) : null
   return (
     <Layout>
       {!errorNoKeys && (
         <>
           <Head>
-            <title>Post List</title>
-            <meta name="description" content="React Bricks blog starter" />
+            <title>{filterTag}</title>
+            <meta name="description" content={filterTag} />
           </Head>
           {headerOk && !errorHeader ? (
             <PageViewer page={headerOk} showClickToEdit={false} />
           ) : (
             <ErrorNoHeader />
           )}
-          <div className="bg-white dark:bg-gray-900">
-            <div className="max-w-6xl mx-auto px-8 py-16">
-              <h1 className="max-w-2xl text-4xl sm:text-6xl lg:text-4xl font-bold tracking-tight text-gray-900 dark:text-white pb-4 mt-10 sm:mt-12 mb-4">
-                Our latest articles
-              </h1>
-
-              <div className="flex flex-wrap items-center">
-                {tags?.map((tag) => (
-                    <TagListItem tag={tag} key={tag} />
-                  ))}
-              </div>
-
-              <hr className="mt-6 mb-10 dark:border-gray-600" />
-
-              <div className="grid lg:grid-cols-2 xl:grid-cols-3 sm:gap-12">
-                {posts?.map((post) => {
-                  return (
-                    <PostListItem
-                      key={post.id}
-                      title={post.meta.title}
-                      href={post.slug}
-                      content={post.meta.description}
-                      author={post.author}
-                      date={post.publishedAt}
-                      featuredImg={post.meta.featuredImage || ''}
-                    />
-                  )
-                })}
-              </div>
-            </div>
-          </div>
+          <PageViewer page={pageOk} />
           {footerOk && !errorFooter ? (
             <PageViewer page={footerOk} showClickToEdit={false} />
           ) : (
@@ -98,44 +67,56 @@ const BlogList: React.FC<HomeProps> = ({
 }
 
 export const getStaticProps: GetStaticProps = async (context) => {
-  let header: {} | types.Page
-  let footer: {} | types.Page
   let errorNoKeys: boolean = false
+  let errorPage: boolean = false
   let errorHeader: boolean = false
   let errorFooter: boolean = false
 
   if (!config.apiKey) {
     errorNoKeys = true
-    return { props: { errorNoKeys } }
+    return { props: { error: 'NOKEYS' } }
   }
+
   try {
-    const { items: tags } = await fetchTags(process.env.API_KEY)
-    tags.sort()
-
-    const posts = await fetchPages(process.env.API_KEY, {
-      type: 'blog',
-      pageSize: 1000,
-      sort: '-publishedAt',
-    })
-
-    header = await fetchPage('header', config.apiKey, context.locale).catch(
-      () => {
+    const [page, header, footer] = await Promise.all([
+      fetchPage(
+        'posts-list',
+        config.apiKey,
+        context.locale,
+        config.pageTypes
+      ).catch(() => {
+        errorPage = true
+        return {}
+      }),
+      fetchPage('header', config.apiKey, context.locale).catch(() => {
         errorHeader = true
         return {}
-      }
-    )
-
-    footer = await fetchPage('footer', config.apiKey, context.locale).catch(
-      () => {
+      }),
+      fetchPage('footer', config.apiKey, context.locale).catch(() => {
         errorFooter = true
         return {}
-      }
-    )
+      }),
+    ])
 
-    return { props: { posts, tags, header, footer, errorHeader, errorFooter } }
+    return {
+      props: {
+        page: {
+          ...page,
+          customValues: {
+            ...(page as types.Page).customValues,
+          },
+        },
+        header,
+        footer,
+        errorNoKeys,
+        errorPage,
+        errorHeader,
+        errorFooter,
+      },
+    }
   } catch {
-    return { props: { header, footer, errorHeader, errorFooter } }
+    return { props: {} }
   }
 }
 
-export default BlogList
+export default Page
